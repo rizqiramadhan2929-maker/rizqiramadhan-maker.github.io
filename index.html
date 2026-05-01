@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Catch The Box - Rizqi Ramadhan</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: radial-gradient(circle, #111, #000);
+  color: white;
+  text-align: center;
+}
+
+h1 {
+  margin-top: 20px;
+  color: cyan;
+  text-shadow: 0 0 15px cyan;
+}
+
+#info {
+  font-size: 20px;
+  margin: 10px;
+}
+
+#box {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(45deg, red, orange);
+  position: absolute;
+  border-radius: 15px;
+  cursor: pointer;
+  box-shadow: 0 0 20px red;
+  transition: 0.2s;
+  display: none;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 18px;
+  background: cyan;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+footer {
+  position: fixed;
+  bottom: 10px;
+  width: 100%;
+  font-size: 14px;
+  opacity: 0.7;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎮 Catch The Box</h1>
+
+<div id="info">
+Score: <span id="score">0</span> |
+Time: <span id="time">30</span> |
+High Score: <span id="high">0</span>
+</div>
+
+<button id="btn" onclick="handleGame()">START</button>
+
+<div id="box"></div>
+
+<footer>Made by Rizqi Ramadhan 🚀</footer>
+
+<!-- SOUND -->
+<audio id="clickSound">
+  <source src="https://www.soundjay.com/button/sounds/button-16.mp3">
+</audio>
+
+<audio id="startSound">
+  <source src="https://www.soundjay.com/button/sounds/button-09.mp3">
+</audio>
+
+<audio id="pauseSound">
+  <source src="https://www.soundjay.com/button/sounds/button-10.mp3">
+</audio>
+
+<audio id="gameOverSound">
+  <source src="https://www.soundjay.com/misc/sounds/fail-trombone-01.mp3">
+</audio>
+
+<audio id="winSound">
+  <source src="https://www.soundjay.com/human/sounds/applause-8.mp3">
+</audio>
+
+<script>
+let score = 0;
+let time = 30;
+let speed = 1000;
+
+let gameInterval, timerInterval;
+let isPlaying = false;
+let isPaused = false;
+
+const box = document.getElementById("box");
+const scoreEl = document.getElementById("score");
+const timeEl = document.getElementById("time");
+const highEl = document.getElementById("high");
+const btn = document.getElementById("btn");
+
+/* SOUND */
+const clickSound = document.getElementById("clickSound");
+const startSound = document.getElementById("startSound");
+const pauseSound = document.getElementById("pauseSound");
+const gameOverSound = document.getElementById("gameOverSound");
+const winSound = document.getElementById("winSound");
+
+/* HIGHSCORE */
+let highScore = localStorage.getItem("highscore") || 0;
+highEl.innerText = highScore;
+
+function moveBox() {
+  let size = box.offsetWidth;
+
+  let x = Math.random() * (window.innerWidth - size);
+  let y = Math.random() * (window.innerHeight - size);
+
+  box.style.left = x + "px";
+  box.style.top = y + "px";
+}
+
+/* KLIK */
+box.onclick = () => {
+  score++;
+  scoreEl.innerText = score;
+
+  clickSound.currentTime = 0;
+  clickSound.play();
+
+  if (speed > 300) speed -= 20;
+
+  let newSize = Math.max(30, 80 - score);
+  box.style.width = newSize + "px";
+  box.style.height = newSize + "px";
+
+  moveBox();
+};
+
+/* BUTTON CONTROL */
+function handleGame() {
+
+  if (!isPlaying) {
+    startGame();
+    startSound.play();
+    btn.innerText = "PAUSE";
+    isPlaying = true;
+    isPaused = false;
+  } 
+  else if (!isPaused) {
+    pauseGame();
+    pauseSound.play();
+    btn.innerText = "RESUME";
+    isPaused = true;
+  } 
+  else {
+    resumeGame();
+    startSound.play();
+    btn.innerText = "PAUSE";
+    isPaused = false;
+  }
+}
+
+/* START */
+function startGame() {
+  score = 0;
+  time = 30;
+  speed = 1000;
+
+  scoreEl.innerText = score;
+  timeEl.innerText = time;
+
+  box.style.display = "block";
+  moveBox();
+
+  clearInterval(gameInterval);
+  clearInterval(timerInterval);
+
+  gameInterval = setInterval(moveBox, speed);
+
+  timerInterval = setInterval(() => {
+    time--;
+    timeEl.innerText = time;
+
+    if (time <= 0) endGame();
+  }, 1000);
+}
+
+/* PAUSE */
+function pauseGame() {
+  clearInterval(gameInterval);
+  clearInterval(timerInterval);
+}
+
+/* RESUME */
+function resumeGame() {
+  gameInterval = setInterval(moveBox, speed);
+
+  timerInterval = setInterval(() => {
+    time--;
+    timeEl.innerText = time;
+
+    if (time <= 0) endGame();
+  }, 1000);
+}
+
+/* END */
+function endGame() {
+  clearInterval(gameInterval);
+  clearInterval(timerInterval);
+
+  box.style.display = "none";
+  isPlaying = false;
+
+  btn.innerText = "RESTART";
+
+  if (score > highScore) {
+    localStorage.setItem("highscore", score);
+    winSound.play();
+    alert("🔥 New High Score: " + score);
+  } else {
+    gameOverSound.play();
+    alert("Game Over! Score: " + score);
+  }
+
+  highEl.innerText = localStorage.getItem("highscore");
+}
+</script>
+
+</body>
+</html>
